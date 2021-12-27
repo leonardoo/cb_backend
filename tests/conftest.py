@@ -45,21 +45,23 @@ def create_category(faker):
 
 @pytest.fixture
 def create_event(faker, create_category):
-    return Event.objects.create(
-        category=create_category,
-        name=faker.name(),
-        validators=[]
-    )
+    def add_schema(schema=None):
+        event = Event.objects.create(
+            category=create_category,
+            name=faker.name(),
+            validators=[] if schema is None else schema,
+        )
+        return event
+    return add_schema
 
 
 @pytest.fixture
 def create_event_with_session(faker, create_session, create_event):
-    def get_event(data):
+    def get_event(data, schema=None):
         return EventSession.objects.create(
             session=create_session,
-            event=create_event,
+            event=create_event(schema),
             payload=data,
             timestamp=faker.date_time(),
-
         )
     return get_event

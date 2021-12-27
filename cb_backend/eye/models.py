@@ -3,6 +3,8 @@ import uuid
 from django.conf import settings
 from django.db import models
 
+from cb_backend.eye.validators import Validator
+
 
 class Application(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -69,3 +71,17 @@ class EventSession(models.Model):
 
     def __str__(self):
         return str(self.id)
+
+    def validate_event(self):
+        if not self.event.validators:
+            self.status = EventSessionStatus.REJECTED
+            self.payload_error = ['No validators defined']
+            return False
+        response = Validator.get_validator(self.event, self.payload).validate()
+        if response:
+            self.status = EventSessionStatus.REJECTED
+            self.payload_error = response
+            return False
+        self.status = EventSessionStatus.VALIDATED
+        return True
+
