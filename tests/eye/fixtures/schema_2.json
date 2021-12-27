@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "host": {
+      "type": "string"
+    },
+    "path": {
+      "type": "string"
+    },
+    "form": {
+      "type": "object",
+      "properties": {
+        "first_name": {
+          "type": "string"
+        },
+        "last_name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "first_name",
+        "last_name"
+      ]
+    }
+  },
+  "required": [
+    "host",
+    "path",
+    "form"
+  ]
+}
