@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   # psycopg2 dependencies
   libpq-dev
 
+
+
 # Requirements are installed here to ensure they will be cached.
 COPY ./requirements .
 
@@ -53,25 +55,22 @@ COPY --from=python-build-stage /usr/src/app/wheels  /wheels/
 RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
 	&& rm -rf /wheels/
 
-COPY ./compose/production/django/entrypoint /entrypoint
-RUN sed -i 's/\r$//g' /entrypoint
+RUN groupadd -g 1001 cb_backend && useradd -m -d /opt/cb_backend -u 1001 -g cb_backend cb_backend
+USER cb_backend
+
+COPY --chown=cb_backend:cb_backend ./compose/production/django/entrypoint /entrypoint
 RUN chmod +x /entrypoint
 
-COPY ./compose/local/django/start /start
-RUN sed -i 's/\r$//g' /start
+COPY --chown=cb_backend:cb_backend ./compose/local/django/start /start
 RUN chmod +x /start
 
-
-COPY ./compose/local/django/celery/worker/start /start-celeryworker
-RUN sed -i 's/\r$//g' /start-celeryworker
+COPY --chown=cb_backend:cb_backend ./compose/local/django/celery/worker/start /start-celeryworker
 RUN chmod +x /start-celeryworker
 
-COPY ./compose/local/django/celery/beat/start /start-celerybeat
-RUN sed -i 's/\r$//g' /start-celerybeat
+COPY --chown=cb_backend:cb_backend ./compose/local/django/celery/beat/start /start-celerybeat
 RUN chmod +x /start-celerybeat
 
-COPY ./compose/local/django/celery/flower/start /start-flower
-RUN sed -i 's/\r$//g' /start-flower
+COPY --chown=cb_backend:cb_backend ./compose/local/django/celery/flower/start /start-flower
 RUN chmod +x /start-flower
 
 
