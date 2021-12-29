@@ -1,5 +1,6 @@
 import pytest
-from cb_backend.eye.models import Application, Session, CategoryEvent, EventSession, Event, ApplicationGroup
+from cb_backend.eye.models import Application, Session, CategoryEvent, EventSession, Event, ApplicationGroup, \
+    ApplicationSession
 from cb_backend.users.models import User
 
 
@@ -44,6 +45,14 @@ def create_session(create_application):
     return Session.objects.create(
         created_by=create_application(),
         session_data={},
+    )
+
+@pytest.fixture
+def create_app_session(create_session):
+    session = create_session
+    return ApplicationSession.objects.create(
+        session=session,
+        application=session.created_by,
     )
 
 

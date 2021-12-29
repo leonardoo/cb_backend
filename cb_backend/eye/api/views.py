@@ -1,9 +1,11 @@
+from django.core.cache import cache
 from django.db.models import Q
-from rest_framework import mixins, viewsets, exceptions, status
+from rest_framework import mixins, viewsets, exceptions, status, permissions
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 
 from cb_backend.eye.api.serializers import EventSessionSerializer, ApplicationSessionSerializer
+from cb_backend.eye.constants import SESSION_APP_CACHE_KEY, SESSION_APP_CACHE_TIMEOUT
 from cb_backend.eye.models import Application, ApplicationSession, Session
 
 
@@ -23,6 +25,32 @@ class TokenAppAuth(TokenAuthentication):
         return (token.owner, token)
 
 
+class SessionAppPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        """
+        Return `True` if permission is granted, `False` otherwise.
+        """
+        if not hasattr(request, "auth") or not isinstance(request.auth, Application):
+            return False
+        session_id = request.data.get("session_id")
+        if not session_id:
+            return False
+        key = f"{SESSION_APP_CACHE_KEY}_{str(request.auth.id)}_{str(session_id).replace(' ', '_')}"
+        if value := cache.get(key) is not None:
+            return value
+        filter_q = Q(Q(application=request.auth))
+        if request.auth.group_id:
+            filter_q.add(Q(group=request.auth.group_id), Q.OR)
+        app_session = ApplicationSession.objects.filter(
+            session_id=session_id,
+        ).filter(
+            filter_q
+        ).select_related("session").first()
+        approved = app_session is not None
+        cache.set(key, approved, SESSION_APP_CACHE_TIMEOUT)
+        return approved
+
+
 class EventSessionViewSet(mixins.CreateModelMixin,
                           viewsets.GenericViewSet):
     """
@@ -30,6 +58,7 @@ class EventSessionViewSet(mixins.CreateModelMixin,
     """
     serializer_class = EventSessionSerializer
     authentication_classes = (TokenAppAuth,)
+    permission_classes = (SessionAppPermission,)
 
     def get_serializer(self, *args, **kwargs):
         serializer = super().get_serializer(*args, **kwargs)
