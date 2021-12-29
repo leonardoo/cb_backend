@@ -11,9 +11,17 @@ from cb_backend.eye.models import Application, ApplicationSession, Session
 
 class TokenAppAuth(TokenAuthentication):
 
+    """
+    Custom TokenAuthentication class to allow for application authentication
+    """
+
     model = Application
 
     def authenticate_credentials(self, key):
+        """
+        Override the default authenticate_credentials method to allow for use the application token
+        as authentication
+        """
         model = self.get_model()
         try:
             token = model.objects.get(token=key)
@@ -28,7 +36,7 @@ class TokenAppAuth(TokenAuthentication):
 class SessionAppPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         """
-        Return `True` if permission is granted, `False` otherwise.
+        Check if the app has permission to use the session to save events
         """
         if not hasattr(request, "auth") or not isinstance(request.auth, Application):
             return False
@@ -71,12 +79,18 @@ class ApplicationSessionGetOrCreateView(
     viewsets.GenericViewSet
 ):
     """
-    API endpoint that allows event sessions to be created.
+    API endpoint that allows event sessions to be created or be reuse by another app, when the
+    session data exists.
     """
     serializer_class = ApplicationSessionSerializer
     authentication_classes = (TokenAppAuth,)
 
     def create(self, request, *args, **kwargs):
+        """
+        Create a session if the session data dont exists, otherwise reuse the session
+        if the application is allow to use it
+        this will return the session_id
+        """
         app = self.request.auth
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
