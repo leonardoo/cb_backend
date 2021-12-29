@@ -17,7 +17,7 @@ def test_create_basic_event(client, create_session, create_event):
             "timestamp": datetime.utcnow().isoformat(),
             "data": {}
         }, content_type='application/json',
-        **{'HTTP_AUTHORIZATION': f'Token {session.application.token}'}
+        **{'HTTP_AUTHORIZATION': f'Token {session.created_by.token}'}
     )
     assert response.status_code == 201
     assert EventSession.objects.count() == 1

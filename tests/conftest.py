@@ -1,5 +1,5 @@
 import pytest
-from cb_backend.eye.models import Application, Session, CategoryEvent, EventSession, Event
+from cb_backend.eye.models import Application, Session, CategoryEvent, EventSession, Event, ApplicationGroup
 from cb_backend.users.models import User
 
 
@@ -20,19 +20,41 @@ def create_user(faker):
     )
 
 @pytest.fixture
-def create_application(faker, create_user):
-    return Application.objects.create(
+def create_application_group(faker, create_user):
+    return ApplicationGroup.objects.create(
         name=faker.name(),
         description=faker.text(),
         owner=create_user,
     )
 
+@pytest.fixture
+def create_application(faker, create_user):
+    def get_app(group=None):
+        return Application.objects.create(
+            name=faker.name(),
+            description=faker.text(),
+            owner=create_user,
+            group=group,
+        )
+    return get_app
+
 
 @pytest.fixture
-def create_session(faker, create_application):
+def create_session(create_application):
     return Session.objects.create(
-        application=create_application,
+        created_by=create_application(),
+        session_data={},
     )
+
+
+@pytest.fixture
+def create_session_from_app(create_application):
+    def get_session(app=None, session_data=None):
+        return Session.objects.create(
+            created_by=create_application() if not app else app,
+            session_data={} if not session_data else session_data,
+        )
+    return get_session
 
 
 @pytest.fixture

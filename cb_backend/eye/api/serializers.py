@@ -60,3 +60,9 @@ class EventSessionSerializer(serializers.Serializer):
             timestamp=validated_data.get("timestamp")
         )
         return validated_data
+
+
+class ApplicationSessionSerializer(serializers.Serializer):
+    session_data = serializers.JSONField()
+
+
