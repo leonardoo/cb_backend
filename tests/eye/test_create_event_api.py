@@ -16,7 +16,8 @@ def test_create_basic_event(client, create_session, create_event):
             "name": event.name,
             "timestamp": datetime.utcnow().isoformat(),
             "data": {}
-        }, content_type='application/json'
+        }, content_type='application/json',
+        **{'HTTP_AUTHORIZATION': f'Token {session.application.token}'}
     )
     assert response.status_code == 201
     assert EventSession.objects.count() == 1
@@ -41,6 +42,3 @@ def test_create_event_call_celery_task(client, create_session, create_event, moc
         }, content_type='application/json'
     )
     assert task_exec.called_once
-
-
-
