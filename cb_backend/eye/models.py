@@ -6,6 +6,21 @@ from django.db import models
 from cb_backend.eye.validators import Validator
 
 
+class ApplicationGroup(models.Model):
+    """
+    ApplicationGroup model
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
 class Application(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
@@ -14,6 +29,7 @@ class Application(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     token = models.UUIDField(default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='applications', on_delete=models.CASCADE)
+    group = models.ForeignKey(ApplicationGroup, related_name='applications', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.name
@@ -21,9 +37,20 @@ class Application(models.Model):
 
 class Session(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    application = models.ForeignKey(Application, related_name='sessions', on_delete=models.CASCADE)
+    session_data = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(Application, on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return str(self.id)
+
+
+class ApplicationSession(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    application = models.ForeignKey(Application, related_name='sessions', on_delete=models.CASCADE)
+    session = models.ForeignKey('Session', related_name='applications', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return str(self.id)
@@ -59,7 +86,7 @@ class EventSessionStatus(models.TextChoices):
 
 
 class EventSession(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
     session = models.ForeignKey(Session, related_name='events', on_delete=models.CASCADE)
     event = models.ForeignKey(Event, related_name='events', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -68,6 +95,9 @@ class EventSession(models.Model):
     timestamp = models.DateTimeField()
     status = models.CharField(max_length=10, choices=EventSessionStatus.choices, default=EventSessionStatus.PENDING)
     payload_error = models.JSONField(null=True)
+
+    class Meta:
+        ordering = ['timestamp']
 
     def __str__(self):
         return str(self.id)
