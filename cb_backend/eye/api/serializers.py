@@ -9,6 +9,11 @@ from ..models import CategoryEvent, Event, EventSession, Session
 
 
 class EventSessionSerializer(serializers.Serializer):
+    """
+    Serializer for handling data that the app send to the application and create a new EventSession
+    if all is ok.
+    """
+
     session_id = serializers.UUIDField()
     category = serializers.CharField()
     name = serializers.CharField()
@@ -16,6 +21,9 @@ class EventSessionSerializer(serializers.Serializer):
     timestamp = serializers.DateTimeField()
 
     def validate_session_id(self, value):
+        """
+        Check if the session_id exists in the database. and if exists save in the cache for future use.
+        """
         key = f"{SESSION_CACHE_KEY}_{str(value).replace(' ', '_')}"
         if cache.get(key):
             return value
@@ -26,6 +34,9 @@ class EventSessionSerializer(serializers.Serializer):
         return value
 
     def validate_category(self, value):
+        """
+        Check if the category exists in the database. and if exists save in the cache for future use.
+        """
         key = f"{CATEGORY_CACHE_KEY}_{value.replace(' ', '_')}"
         if category_id := cache.get(key):
             self.category_id = category_id
@@ -38,6 +49,9 @@ class EventSessionSerializer(serializers.Serializer):
         return value
 
     def validate(self, data):
+        """
+        Validate than the basic event data are correct. and if exists save in the cache for future use.
+        """
         data = super().validate(data)
         event_name = data.get("name")
         category = data.get("category")
@@ -53,6 +67,9 @@ class EventSessionSerializer(serializers.Serializer):
         return data
 
     def create(self, validated_data):
+        """
+        Create a new EventSession and save it in the database.
+        """
         event_session = EventSession.objects.create(
             session_id=validated_data.get("session_id"),
             event_id=self.event_id,
@@ -63,6 +80,9 @@ class EventSessionSerializer(serializers.Serializer):
 
 
 class ApplicationSessionSerializer(serializers.Serializer):
+    """
+    Serializer for handle the session data
+    """
     session_data = serializers.JSONField()
 
 

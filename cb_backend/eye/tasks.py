@@ -6,7 +6,7 @@ from cb_backend.eye.models import EventSession, EventSessionStatus
 @shared_task
 def validate_event(event_id):
     """
-    Validates an event_id.
+    Get an event_id, get it and try to validate it.
     """
     event = EventSession.objects.select_related("event").filter(pk=event_id).first()
     if not event:

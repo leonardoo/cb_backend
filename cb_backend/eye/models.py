@@ -8,7 +8,7 @@ from cb_backend.eye.validators import Validator
 
 class ApplicationGroup(models.Model):
     """
-    ApplicationGroup model
+    This model is used to group applications. so this can share sessions or other data
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, unique=True)
@@ -22,6 +22,10 @@ class ApplicationGroup(models.Model):
 
 
 class Application(models.Model):
+    """
+    This model is used to store application details
+    """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -47,6 +51,9 @@ class Session(models.Model):
 
 
 class ApplicationSession(models.Model):
+    """
+    This model is used to store application session details
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     application = models.ForeignKey(Application, related_name='sessions', on_delete=models.CASCADE)
     session = models.ForeignKey('Session', related_name='applications', on_delete=models.CASCADE)
@@ -57,6 +64,9 @@ class ApplicationSession(models.Model):
 
 
 class CategoryEvent(models.Model):
+    """
+    This model is used to store category events
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -68,6 +78,9 @@ class CategoryEvent(models.Model):
 
 
 class Event(models.Model):
+    """
+    This model is used had the the validation of an user event
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     category = models.ForeignKey(CategoryEvent, related_name='events', on_delete=models.CASCADE)
@@ -86,6 +99,9 @@ class EventSessionStatus(models.TextChoices):
 
 
 class EventSession(models.Model):
+    """
+    This model is used to store event session details
+    """
     id = models.UUIDField(primary_key=True, default=uuid.uuid1, editable=False)
     session = models.ForeignKey(Session, related_name='events', on_delete=models.CASCADE)
     event = models.ForeignKey(Event, related_name='events', on_delete=models.CASCADE)
@@ -103,6 +119,10 @@ class EventSession(models.Model):
         return str(self.id)
 
     def validate_event(self):
+        """
+        This method is used to call the validators in the event, allow to know if the event was
+        validated correctly or has been rejected
+        """
         if not self.event.validators:
             self.status = EventSessionStatus.REJECTED
             self.payload_error = ['No validators defined']

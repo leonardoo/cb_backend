@@ -12,26 +12,20 @@ backend
 
 :License: MIT
 
-Settings
---------
-
-Moved to settings_.
-
-.. _settings: http://cookiecutter-django.readthedocs.io/en/latest/settings.html
-
-Basic Commands
+conclusions
 --------------
 
-Setting Up Your Users
-^^^^^^^^^^^^^^^^^^^^^
+for this app, i take in consideration the following:
 
-* To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
+- this can be done in a microframework for had a better performance
+- for performance reasons, i use a cache system and dont use serializer base in models in many cases its better had a function to convert and return the data,
+- the app require a group for the applications can share sessions
+- without knowing how will the apps handle the session, i create a json field to had something similar to jwt data for multiple apps can get same sessions
+- because a event can have multiple validators, i use a json field that will contains json schema, so we can add new validators easily
+- the app case can be a app to collect data from multiple website, as an app for analytics or something like sentry to collect errors
 
-* To create an **superuser account**, use this command::
 
-    $ python manage.py createsuperuser
-
-For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
+.. _ `django-ninja':https://django-ninja.rest-framework.com/`
 
 Type checks
 ^^^^^^^^^^^
@@ -57,13 +51,6 @@ Running tests with py.test
 ::
 
   $ pytest
-
-Live reloading and Sass CSS compilation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Moved to `Live reloading and SASS compilation`_.
-
-.. _`Live reloading and SASS compilation`: http://cookiecutter-django.readthedocs.io/en/latest/live-reloading-and-sass-compilation.html
 
 Celery
 ^^^^^^
